@@ -1,0 +1,19 @@
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_MODULE_PATH})
+find_package(Criterion REQUIRED)
+
+macro(add_criterion_test TESTNAME)
+	add_executable(${TESTNAME} ${ARGN})
+	set_target_properties(${TESTNAME} PROPERTIES
+			      INTERPROCEDURAL_OPTIMIZATION OFF)
+	target_link_libraries(${TESTNAME} ${CRITERION_LIBRARIES})
+
+	if (DEFINED ENV{NEXT32_LD_LIBRARY_PATH})
+		set(NEXT32_RPATH $ENV{NEXT32_LD_LIBRARY_PATH})
+	else()
+		set(NEXT32_RPATH $ENV{NEXT32_HOME}/lib)
+	endif()
+
+	add_test(NAME ${TESTNAME} COMMAND env LD_LIBRARY_PATH=${NEXT32_RPATH}
+		$<TARGET_FILE:${TESTNAME}> --xml=Jenkins-${TESTNAME}.xml --ascii
+		WORKING_DIRECTORY $<TARGET_FILE_DIR:${TESTNAME}>)
+endmacro()
